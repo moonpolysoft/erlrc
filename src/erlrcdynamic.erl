@@ -15,7 +15,9 @@
            upgrade/3,
            upgrade/5 ]).
 
+-ifdef (HAVE_EUNIT).
 -include_lib ("eunit/include/eunit.hrl").
+-endif.
 
 %-=====================================================================-
 %-                                Public                               -
