@@ -13,10 +13,10 @@ TESTS = 		\
   test-downgrade	\
   test-upgrade
 
-CLEANFILES =		\
+CLEANFILES +=		\
   $(boot_tests)
 
-EXTRA_DIST =		\
+EXTRA_DIST +=		\
   erlrc_boot_test.erl	\
   erlrctest.app		\
   erlrctest.erl
