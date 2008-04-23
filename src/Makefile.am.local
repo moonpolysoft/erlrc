@@ -18,7 +18,7 @@ dist_erlapppriv_DATA =		\
 check_DATA =			\
   .dialyzer_ok
 
-bin_SCRIPTS =			\
+dist_bin_SCRIPTS =		\
   erlrc-make-boot-script	\
   erlrc-downgrade		\
   erlrc-eval			\
