@@ -1,0 +1,61 @@
+#! /bin/sh
+
+ERL_CRASH_DUMP=${ERL_CRASH_DUMP-/dev/null}
+export ERL_CRASH_DUMP
+
+ERLRC_ROOT=${ERLRC_ROOT-/etc/erlrc.d/}
+
+erlrc_node_foreach () {
+  test -d "${ERLRC_ROOT}/nodes/" || {
+    echo "$id: directory '${ERLRC_ROOT}/nodes/' not found" 1>&2
+    exit 2
+  }
+
+  for node in "${ERLRC_ROOT}"/nodes/*
+    do
+      test "$node" = "${ERLRC_ROOT}"/'nodes/*' || {
+        cookie="`cat \"$node\"`"
+        node_name="`basename \"$node\"`"
+        "$@" "$node_name" "$cookie"
+      }
+    done
+}
+
+erlrc_remote_eval () {
+  local node="$1"
+  local cookie="$2"
+  local script="$3"
+
+  if test `erl -name erlrctmp$$ -hidden -setcookie "$cookie" \
+               -noshell -noinput -eval \
+            "[ Host ] = tl (string:tokens (atom_to_list (node ()), \"@\")),
+             MainNode = list_to_atom (\"${node}@\" ++ Host),
+             io:format (\"~p\", [ net_adm:ping (MainNode) ])" \
+             -s erlang halt` = pang
+    then
+      # not running, no error
+      printf "%s" node_down
+    else
+      local perlscript='($_) = @ARGV; s/\\/\\\\/sg; s/"/\\"/sg; s/([^\.])$/$1./; print $_;'
+      local to_eval="`perl -e \"$perlscript\" \"$script\"`"
+
+      erl -name erlrctmp$$ -hidden -setcookie "$cookie" \
+          -noshell -noinput -eval \
+       "[ Host ] = tl (string:tokens (atom_to_list (node ()), \"@\")),
+        MainNode = list_to_atom (\"${node}@\" ++ Host),
+        { ok, Scanned, _ } = erl_scan:string (\"$to_eval\"),
+        { ok, Parsed } = erl_parse:parse_exprs (Scanned),
+        case rpc:call (MainNode, erl_eval, exprs, [ Parsed, [] ]) of
+          { value, Value, _ } ->
+            io:format (\"~p\", [ Value ]);
+          Error ->
+            rpc:call (MainNode, 
+                      erlrcdynamic,
+                      local_error_msg,
+                      [ \"erlrcdynamic: eval error: ~p~n\", [ Error ] ]),
+            io:format (\"error\", []),
+            erlang:halt (1)
+        end" \
+          -s erlang halt 
+    fi
+}

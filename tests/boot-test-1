@@ -1,0 +1,6 @@
+start *foo-1.0.0: bar, baz
+start bar-0.0.1: quux, !blorf
+start baz-0.1: florb
+start quux-2.0: florb
+start blorf-3.0: florb
+start florb-0.1: 

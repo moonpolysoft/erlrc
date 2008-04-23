@@ -1,0 +1,63 @@
+#! /bin/sh
+
+cleanup () {
+  trap - EXIT
+  ../src/erlrc-eval erlrcstop$$ 'init:stop ()' >/dev/null 2>/dev/null
+  rm -rf flass$$
+  rm -rf erlrcstop$$
+}
+
+trap cleanup EXIT
+set -e
+
+{
+ERLRC_ROOT=`pwd`/flass$$
+export ERLRC_ROOT
+
+rm -rf flass$$
+mkdir -p flass$$/nodes/
+mkdir -p flass$$/applications/
+
+erl -name erlrcstop$$ -setcookie flass$$ -noshell -noinput -pa ../src/ -erlrc root_dir \"flass$$\" -eval '
+  ok = application:load (erlrc),
+  receive after infinity -> ok end
+' -s erlang halt &
+
+printf "%s" "flass$$" > flass$$/nodes/erlrcstop$$
+printf "%s" "turg" > flass$$/nodes/node_not_started
+
+erl -name erlrcstopfindah$$ -setcookie flass$$ -noshell -noinput -eval "
+  [ Host ] = tl (string:tokens (atom_to_list (node ()), \"@\")),
+  Other = list_to_atom (atom_to_list (erlrcstop$$) ++ \"@\" ++ Host),
+  G = fun (_, 0) -> failed;
+          (F, N) -> case net_adm:ping (Other) of pong -> ok; 
+                                                 pang -> timer:sleep (50),
+                                                         F (F, N - 1)
+                    end
+      end,
+  ok = G (G, 100)" -s erlang halt 
+
+mkdir -p erlrcstop$$/test-0.0.0/ebin
+cp erlrctest.app erlrctest.beam erlrcstop$$/test-0.0.0/ebin
+
+set +e
+../src/erlrc-stop erlrctest 0.0.1 "`pwd`/erlrcstop$$/test-0.0.0" && exit 1
+set -e
+../src/erlrc-stop erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0"
+../src/erlrc-start erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0"
+../src/erlrc-stop erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0"
+../src/erlrc-stop erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0"
+../src/erlrc-start erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0"
+../src/erlrc-eval                                               \
+  erlrcstop$$                                                   \
+  '{ module, erlrctest } = code:load_file (erlrctest)'
+set +e
+../src/erlrc-stop erlrctest 0.0.1 "`pwd`/erlrcstop$$/test-0.0.0" && exit 1
+set -e
+../src/erlrc-stop --no-unload erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0" 
+../src/erlrc-eval erlrcstop$$ 'true = code:is_loaded (erlrctest)' 
+../src/erlrc-stop erlrctest 0.0.0 "`pwd`/erlrcstop$$/test-0.0.0" 
+../src/erlrc-eval erlrcstop$$ 'false = code:is_loaded (erlrctest)' 
+} > test-stop.out
+
+exit 0

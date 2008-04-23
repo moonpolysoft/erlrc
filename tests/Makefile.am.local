@@ -1,0 +1,22 @@
+boot_tests = $(patsubst boot-test-%, ok-boot-test-%, $(wildcard boot-test-*))
+
+ok-boot-test-%: boot-test-%
+	./test-boot.pl $<
+	@ln -sf `which true` $@
+
+TESTS = 		\
+  $(boot_tests)		\
+  module-erlrc		\
+  module-erlrcdynamic	\
+  test-start		\
+  test-stop		\
+  test-downgrade	\
+  test-upgrade
+
+CLEANFILES =		\
+  $(boot_tests)
+
+EXTRA_DIST =		\
+  erlrc_boot_test.erl	\
+  erlrctest.app		\
+  erlrctest.erl

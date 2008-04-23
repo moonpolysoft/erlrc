@@ -1,0 +1,73 @@
+#! /bin/sh
+
+id="`basename \"$0\"`"
+loc="`dirname \"$0\"`"
+hook_funcs="$loc/erlrc-hooks"
+
+test -r "$hook_funcs" || {
+  echo "$id: error: can't read file '$hook_funcs'" 1>&2
+  exit 2
+}
+
+. "$hook_funcs"
+
+erlrc_downgrade () {
+  local package="$1"
+  local oldversion="$2"
+  local version="$3"
+  local olddir="$4"
+  local newdir="$5"
+  local node="$6"
+  local cookie="$7"
+
+  printf " (%s) " "$node"
+
+  if test "x$olddir" = "x\0" 
+    then
+      erlrc_remote_eval "$node" "$cookie"                           \
+        "{ ok, _ } = erlrcdynamic:downgrade ('$package', 
+                                             \"$oldversion\",
+                                             \"$version\"),
+         downgraded" || {
+        echo 
+        exit 1
+      }
+    else
+      erlrc_remote_eval "$node" "$cookie"                           \
+        "{ ok, Result } = erlrcdynamic:downgrade ('$package', 
+                                                \"$oldversion\",
+                                                \"$version\",
+                                                \"$olddir\",
+                                                \"$newdir\"),
+         if is_atom (Result) -> Result;
+            true -> downgraded
+         end" || {
+        echo 
+        exit 1
+      }
+    fi
+}
+
+usage () {
+  echo "usage: $id package oldversion version [ olddir newdir ]" 1>&2
+  exit 2
+}
+
+#---------------------------------------------------------------------
+#                                Main                                 
+#---------------------------------------------------------------------
+
+test -n "$1" || { usage; }
+test -n "$2" || { usage; }
+test -n "$3" || { usage; }
+test -n "$4" && { test -n "$5" || usage; }
+
+package="$1"
+oldversion="$2"
+version="$3"
+olddir=${4-"\0"}
+newdir=${5-"\0"}
+
+printf "%s: Downgrading '%s':" "$id" "$package"
+
+erlrc_node_foreach erlrc_downgrade "$package" "$oldversion" "$version" "$olddir" "$newdir" && echo

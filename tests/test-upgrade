@@ -1,0 +1,75 @@
+#! /bin/sh
+
+cleanup () {
+  trap - EXIT
+  ../src/erlrc-eval erlrcupgrade$$ 'init:stop ()' >/dev/null 2>/dev/null
+  rm -rf flass$$
+  rm -rf erlrcupgrade$$
+}
+
+trap cleanup EXIT
+set -e
+
+{
+ERLRC_ROOT=`pwd`/flass$$
+export ERLRC_ROOT
+
+rm -rf erlrcupgrade$$
+mkdir -p erlrcupgrade$$/erlrctest-0.0.0/ebin
+
+rm -rf flass$$
+mkdir -p flass$$/nodes/
+mkdir -p flass$$/applications/
+
+erl -name erlrcupgrade$$ -setcookie flass$$ -noshell -noinput -pa ../src/ -erlrc root_dir \"flass$$\" -eval '
+  ok = application:load (erlrc),
+  receive after infinity -> ok end
+' -s erlang halt &
+
+printf "%s" "flass$$" > flass$$/nodes/erlrcupgrade$$
+printf "%s" "turg" > flass$$/nodes/node_not_started
+
+erl -name erlrcupgradefindah$$ -setcookie flass$$ -noshell -noinput -eval "
+  [ Host ] = tl (string:tokens (atom_to_list (node ()), \"@\")),
+  Other = list_to_atom (atom_to_list (erlrcupgrade$$) ++ \"@\" ++ Host),
+  G = fun (_, 0) -> failed;
+          (F, N) -> case net_adm:ping (Other) of pong -> ok; 
+                                                 pang -> timer:sleep (50),
+                                                         F (F, N - 1)
+                    end
+      end,
+  ok = G (G, 100)" -s erlang halt 
+
+cp erlrctest.app erlrcupgrade$$/erlrctest-0.0.0/ebin 
+cp erlrctest.beam erlrcupgrade$$/erlrctest-0.0.0/ebin
+
+set +e
+echo "***** the following ERROR_REPORT is expected *****"
+../src/erlrc-upgrade erlrctest 0.0.0 0.0.1 && exit 1
+echo "***** subsequent ERROR_REPORTs are not expected *****"
+set -e
+../src/erlrc-upgrade erlrctest 0.0.1 0.0.0 ./erlrcupgrade$$/erlrctest-0.0.1 ./erlrcupgrade$$/erlrctest-0.0.0
+../src/erlrc-eval                                                        \
+  erlrcupgrade$$                                                         \
+  "{ value, { erlrctest, _, \"0.0.0\" } } = 
+    lists:keysearch (erlrctest, 1, application:which_applications ())" > /dev/null
+
+mkdir -p erlrcupgrade$$/erlrctest-0.0.1/ebin
+perl -pe 's%vsn, "0.0.0"%vsn, "0.0.1"% ;' erlrctest.app > erlrcupgrade$$/erlrctest-0.0.1/ebin/erlrctest.app 
+cp erlrctest.beam erlrcupgrade$$/erlrctest-0.0.1/ebin/
+
+../src/erlrc-upgrade erlrctest 0.0.0 0.0.1 ./erlrcupgrade$$/erlrctest-0.0.0 ./erlrcupgrade$$/erlrctest-0.0.1
+../src/erlrc-eval                                                        \
+  erlrcupgrade$$                                                         \
+  "{ value, { erlrctest, _, \"0.0.1\" } } = 
+    lists:keysearch (erlrctest, 1, application:which_applications ())" > /dev/null
+../src/erlrc-upgrade erlrctest 0.0.0 0.0.1 ./erlrcupgrade$$/erlrctest-0.0.0 ./erlrcupgrade$$/erlrctest-0.0.1 
+../src/erlrc-stop erlrctest 0.0.1 ./erlrcupgrade$$/erlrctest-0.0.1
+../src/erlrc-upgrade erlrctest 0.0.0 0.0.1 ./erlrcupgrade$$/erlrctest-0.0.0 ./erlrcupgrade$$/erlrctest-0.0.1 
+../src/erlrc-eval                                                        \
+  erlrcupgrade$$                                                         \
+  "{ value, { erlrctest, _, \"0.0.1\" } } = 
+    lists:keysearch (erlrctest, 1, application:which_applications ())" > /dev/null
+} > test-upgrade.out
+
+exit 0

@@ -1,0 +1,27 @@
+#! /bin/sh
+
+id="`basename \"$0\"`"
+
+name="$1"
+if test "x$name" = x ; then
+  echo "usage: $id NAME [EXTRA-APPS]" 1>&2
+  echo "" 1>&2
+  echo "Generate minimal Erlang boot script files to start erlrc," 1>&2
+  echo "with basename NAME (NAME.rel, NAME.script, NAME.boot)." 1>&2
+  echo "" 1>&2
+  echo "EXTRA-APPS is an optional single argument containing extra" 1>&2
+  echo "applications to start before the erlrc boot process, separated" 1>&2
+  echo "by commas." 1>&2
+  exit 1
+fi
+extra_apps="$2"
+
+erl -sasl sasl_error_logger false \
+    -boot start_sasl \
+    -eval 'application:load (erlrc)' \
+    -eval "erlrc_boot:write_boot_script (\"$name\",
+					 \"erlrc @FW_PACKAGE_VERSION@\",
+					 \"@FW_PACKAGE_VERSION@\",
+					 [ $extra_apps ])" \
+    -noshell -noinput \
+    -s init stop

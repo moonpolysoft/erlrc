@@ -1,0 +1,4 @@
+start foo-1.0: baz
+start bar-1.0: !baz
+start baz-1.0: 
+result {error,{dependency_included,foo,baz,bar}}

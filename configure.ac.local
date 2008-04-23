@@ -1,0 +1,14 @@
+dnl -- include additional autoconf commands here
+dnl -- do not include AC_OUTPUT, this is called for you
+
+AC_CONFIG_FILES([src/erlrc-make-boot-script], [chmod +x src/erlrc-make-boot-script])
+
+SASLLOC=`ERL_CRASH_DUMP=/dev/null erl -noinput -noshell -eval 'io:format ("~p/src", [[ code:lib_dir (sasl) ]]).' -s erlang halt`
+
+test $? = 0 || AC_MSG_ERROR([cant find sasl installation])
+
+FW_SUBST_PROTECT([SASLLOC])
+
+AC_PATH_PROG([PATCH], [patch], [none])
+
+test "x$PATCH" = xnone && AC_MSG_ERROR([can't find patch])

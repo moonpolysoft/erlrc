@@ -1,0 +1,4 @@
+start foo-1.0: bar
+start bar-1.0: baz
+start baz-1.0: foo
+result {error,{circular_dependency,foo,[bar,baz,foo]}}

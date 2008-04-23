@@ -1,0 +1,53 @@
+=Version 0.0.14=
+  * google code release
+
+=Version 0.0.13=
+  * use existing appup file if present
+
+=Version 0.0.12=
+  * make empty supervisor.
+
+=Version 0.0.11=
+  * don't stay started.
+
+=Version 0.0.10=
+  * release_handler bugfix
+  (http://www.erlang.org/pipermail/erlang-questions/2008-March/033950.html)
+
+=Version 0.0.9= 
+  * handle behavior as well as behaviour
+  * fix 'started_included_stopped' case_clause bug
+
+=Version 0.0.8=
+  * Make sure newest code is loaded when upgrading an app that is not started.
+
+=Version 0.0.7=
+  * Avoid chicken and egg issue by not allowing overrides of erlrc's
+    application spec.
+
+=Version 0.0.6=
+  * Was not correctly handling case when erlrc was already loaded.
+  * Log an error if boot fails.
+
+=Version 0.0.5=
+  * Make sure the erlrc application is loaded in erlrc_boot:boot, to
+    support starting erlrc not via the boot script.
+
+=Version 0.0.4=
+  * Allow ERLRC_ROOT environment variable to override root_dir.
+
+=Version 0.0.3=
+  * Fix for upgrade/downgrade of included application.
+
+=Version 0.0.2=
+  * Provide interface to start extra applications in the boot script before
+    the erlrc boot process. (E.g., for installing an alternate error logger.)
+
+=Version 0.0.1=
+  * Have erlrcdynamic respect override files.
+  * code:ensure_loaded/1 all application modules during start.
+  * Don't write appup file to filesystem
+  * Maintain the applications/ => running invariant in erlrcdynamic
+
+=Version 0.0.0=
+  * Initial version.

@@ -1,0 +1,41 @@
+#! /bin/sh
+
+id="`basename \"$0\"`"
+loc="`dirname \"$0\"`"
+hook_funcs="$loc/erlrc-hooks"
+
+test -r "$hook_funcs" || {
+  echo "$id: error: can't read file '$hook_funcs'" 1>&2
+  exit 2
+}
+
+. "$hook_funcs"
+
+# TODO: make O (1)
+
+erlrc_eval () {
+  local want="$1"
+  local script="$2"
+  local node="$3"
+  local cookie="$4"
+
+  test "$want" != "$node" ||                            \
+  erlrc_remote_eval "$node" "$cookie" "$script"
+}
+
+usage () {
+  echo "usage: $id node script" 1>&2
+  exit 2
+}
+
+#---------------------------------------------------------------------
+#                                Main                                 
+#---------------------------------------------------------------------
+
+test -n "$1" || { usage; }
+test -n "$2" || { usage; }
+
+node="$1"
+script="$2"
+
+erlrc_node_foreach erlrc_eval "$node" "$script"

@@ -1,0 +1,9 @@
+- application still shows up in loaded_applications even after removing
+  package and showing message "erlrc-stop: ... unloaded"
+- ensure no dangling code references after failed upgrade (must reload old
+  version modules)
+- release handler can leave code path fucked if upgrade fails?
+
+- don't allow override of module or version portions of app spec ... would cause havoc with appup computation
+
+I'm in ur Erlang upgrading ur applicationz

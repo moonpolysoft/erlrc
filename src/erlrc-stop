@@ -1,0 +1,85 @@
+#! /bin/sh
+
+id="`basename \"$0\"`"
+loc="`dirname \"$0\"`"
+hook_funcs="$loc/erlrc-hooks"
+
+test -r "$hook_funcs" || {
+  echo "$id: error: can't read file '$hook_funcs'" 1>&2
+  exit 2
+}
+
+. "$hook_funcs"
+
+erlrc_stop () {
+  local package="$1"
+  local version="$2"
+  local dir="$3"
+  local no_unload="$4"
+  local node="$5"
+  local cookie="$6"
+
+  printf " (%s) " "$node"
+
+  if test "x$dir" = "x\0"
+    then
+      erlrc_remote_eval "$node" "$cookie"                           \
+        "case erlrcdynamic:stop ('$package', \"$version\") of
+           R when (R =:= stopped) or 
+                  (R =:= stopped_included_started) or
+                  (R =:= not_running) ->
+            case $no_unload of
+              0 ->
+                unloaded = erlrcdynamic:unload ('$package', \"$version\");
+              1 ->
+                R
+            end
+         end" || {
+        echo 
+        exit 1
+      }
+    else
+      erlrc_remote_eval "$node" "$cookie"                           \
+        "case erlrcdynamic:stop ('$package', \"$version\") of
+           R when (R =:= stopped) or 
+                  (R =:= stopped_included_started) or
+                  (R =:= not_running) ->
+            case $no_unload of
+              0 ->
+                unloaded = erlrcdynamic:unload ('$package', \"$version\", \"$dir\");
+              1 ->
+                R
+            end
+         end" || {
+        echo 
+        exit 1
+      }
+    fi
+}
+
+usage () {
+  echo "usage: $id [ --no-unload ] package version [ dir ]" 1>&2
+  exit 2
+}
+
+#---------------------------------------------------------------------
+#                                Main                                 
+#---------------------------------------------------------------------
+
+no_unload=0
+
+test "x$1" = x--no-unload && {
+  no_unload=1
+  shift
+}
+
+test -n "$1" || { usage; }
+test -n "$2" || { usage; }
+
+package="$1"
+version="$2"
+dir=${3-"\0"}
+
+printf "%s: Stopping '%s':" "$id" "$package"
+
+erlrc_node_foreach erlrc_stop "$package" "$version" "$dir" "$no_unload" && echo

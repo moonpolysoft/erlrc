@@ -1,0 +1,11 @@
+--- /usr/lib/erlang/lib/sasl-2.1.5.1/src/release_handler_1.erl	2007-08-05 08:48:53.000000000 -0700
++++ release_handler_1.erl	2008-03-25 19:39:29.000000000 -0700
+@@ -505,7 +505,7 @@
+ 		application:which_applications())).
+ 
+ get_procs([{Name, Pid, worker, dynamic} | T], Sup) when is_pid(Pid) ->
+-    Mods = get_dynamic_mods(Name),
++    Mods = get_dynamic_mods(Pid),
+     [{Sup, Name, Pid, Mods} | get_procs(T, Sup)];
+ get_procs([{Name, Pid, worker, Mods} | T], Sup) when is_pid(Pid), is_list(Mods) ->
+     [{Sup, Name, Pid, Mods} | get_procs(T, Sup)];

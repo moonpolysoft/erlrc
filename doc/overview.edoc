@@ -1,0 +1,4 @@
+@author Paul Mineiro, Michael Radford
+@copyright 2008 N54, Inc.
+@title erlrc
+@doc Application startup library for extensible boot and hot code management.
