@@ -44,3 +44,5 @@ FW_PACKAGE_BUILD_CONFLICTS=""
 FW_ERL_APP_ENVIRONMENT="[ { root_dir, \"/etc/erlrc.d\" } ]"
 
 FW_SUBVERSION_TAG_ROOT="https://erlrc.googlecode.com/svn/tags/"
+
+FW_DUPLOAD_ARGS=${FW_DUPLOAD_ARGS-"-t dukes"}
