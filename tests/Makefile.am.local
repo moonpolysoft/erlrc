@@ -19,4 +19,8 @@ CLEANFILES +=		\
 EXTRA_DIST +=		\
   erlrc_boot_test.erl	\
   erlrctest.app		\
-  erlrctest.erl
+  erlrctest.erl		\
+  test-downgrade	\
+  test-start		\
+  test-stop		\
+  test-upgrade
