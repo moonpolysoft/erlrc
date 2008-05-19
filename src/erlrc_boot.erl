@@ -17,9 +17,20 @@
 boot () ->
   try
     case application:load (erlrc) of
-      ok -> ok;
-      { error, { already_loaded, erlrc } } -> ok;
-      { error, Reason } -> throw ({ application_load_failed, erlrc, Reason })
+      ok ->
+	ok;
+      { error, { already_loaded, erlrc } } ->
+	ok;
+      { error, LoadReason } ->
+	throw ({ application_load_failed, erlrc, LoadReason })
+    end,
+    case application:start (erlrc) of
+      ok ->
+	ok;
+      { error, { already_started, erlrc } } ->
+	ok;
+      { error, StartReason } ->
+	throw ({ application_start_failed, erlrc, StartReason })
     end,
     AppsDir = erlrc_lib:get_apps_dir (),
 

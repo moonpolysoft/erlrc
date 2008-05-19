@@ -1,3 +1,7 @@
+=Version 0.0.15=
+  * erlrc_boot:boot ensures that the erlrc application is started,
+    which ensures that the release_handler_1 bugfix is installed
+
 =Version 0.0.14=
   * google code release
 
