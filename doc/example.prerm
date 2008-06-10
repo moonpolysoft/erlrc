@@ -1,0 +1,29 @@
+#! /bin/sh
+
+#---------------------------------------------------------------------
+#   Example prerm file for (optional) erlrc integration with dpkg    
+#---------------------------------------------------------------------
+
+package_name="example"
+package_version="0.0.0"
+
+operation="$1"
+
+case "$operation" in
+  remove)
+    which erlrc-stop >/dev/null 2>/dev/null
+
+    test $? -ne 0 ||     erlrc-stop "${package_name}" "${package_version}" ||     exit 1
+
+    ;;
+  failed-upgrade)
+    
+    ;;
+  deconfigure)
+    
+    ;;
+  *)
+    ;;
+esac
+
+exit 0

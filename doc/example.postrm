@@ -1,0 +1,40 @@
+#! /bin/sh
+
+#---------------------------------------------------------------------
+#   Example postrm file for (optional) erlrc integration with dpkg    
+#---------------------------------------------------------------------
+
+package_name="example"
+package_version="0.0.0"
+
+operation="$1"
+
+case "$operation" in
+  remove)
+    
+    ;;
+  purge)
+    
+    ;;
+  failed-upgrade)
+    old_version="$2"
+    
+    which erlrc-upgrade >/dev/null 2>/dev/null
+
+    test $? -ne 0 ||     erlrc-upgrade "${package_name}" "$old_version" "${package_version}" ||     exit 1
+
+    ;;
+  abort-install)
+    
+    ;;
+  abort-upgrade)
+    
+    ;;
+  disappear)
+    
+    ;;
+  *)
+    ;;
+esac
+
+exit 0

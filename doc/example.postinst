@@ -1,0 +1,39 @@
+#! /bin/sh
+
+#---------------------------------------------------------------------
+#   Example postinst file for (optional) erlrc integration with dpkg
+#---------------------------------------------------------------------
+
+package_name="example"
+package_version="0.0.0"
+
+operation="$1"
+
+case "$operation" in
+  configure)
+    which erlrc-start >/dev/null 2>/dev/null
+    
+    test $? -ne 0 ||     erlrc-start "${package_name}" "${package_version}" ||     exit 1
+
+    ;;
+  abort-upgrade)
+    new_version="$2"
+    
+    which erlrc-downgrade >/dev/null 2>/dev/null
+
+    test $? -ne 0 ||     erlrc-downgrade "${package_name}" "${package_version}" "$new_version" ||     exit 1
+
+    ;;
+  abort-remove)
+    
+    which erlrc-start >/dev/null 2>/dev/null
+    
+    test $? -ne 0 ||     erlrc-start "${package_name}" "${package_version}" ||     exit 1
+
+    ;;
+  *)
+    ;;
+esac
+
+
+exit 0
