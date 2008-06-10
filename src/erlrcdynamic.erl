@@ -1,7 +1,8 @@
 %% @doc Dynamic hooks intended to be called from packaging systems.
 %% Includes routines for starting, stopping, upgrading, and downgrading
-%% applications.  Automatically generates .appup files (TODO: only if 
-%% they don't exist) as appropriate.
+%% applications.  Automatically generates requisite .appup files (only if 
+%% they don't exist already).
+%% @end
 
 -module (erlrcdynamic).
 -export ([ downgrade/3,
