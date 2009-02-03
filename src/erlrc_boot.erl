@@ -276,34 +276,45 @@ start_app (Spec = { application, App, Keys },
 	false ->
 	  NewStarting = gb_sets:add (App, Starting),
 
-	  % Ensure that all dependencies have been started.
+	  % Ensure that all dependencies have been started,
+	  % including the dependencies of any included applications.
+
+	  Apps = case lists:keysearch (included_applications, 1, Keys) of
+		   { value, { included_applications, As } } -> [ App | As ];
+		   false -> [ App ]
+		 end,
+	  Deps = lists:foldl (fun (A, Acc) ->
+				{ value, { application, A, K } } =
+				  gb_trees:lookup (A, AppToSpec),
+				case lists:keysearch (applications, 1, K) of
+				  { value, { applications, D } } -> D ++ Acc;
+				  false -> Acc
+				end
+			      end,
+			      [],
+			      Apps),
 	  { DepActions, DepStarted } =
-	    case lists:keysearch (applications, 1, Keys) of
-	      false ->
-		{ Actions, Started };
-	      { value, { applications, Deps } } ->
-		lists:foldl (
-		  fun (Dep, { CurActions, CurStarted }) ->
-		    % Can't depend on an application included by
-		    % another, because the application controller
-		    % won't consider it started.
-		    case gb_trees:lookup (Dep, IncludedBy) of
-		      none ->
-			ok;
-		      { value, OtherApp } ->
-			throw ({ dependency_included, App, Dep, OtherApp })
-		    end,
-		    { value, DepSpec } = gb_trees:lookup (Dep, AppToSpec),
-		    start_app (DepSpec,
-			       AppToSpec,
-			       IncludedBy,
-			       NewStarting,
-			       CurActions,
-			       CurStarted)
-		  end,
-		  { Actions, Started },
-		  Deps)
-	    end,
+	    lists:foldl (
+	      fun (Dep, { CurActions, CurStarted }) ->
+		% Can't depend on an application included by
+		% another, because the application controller
+		% won't consider it started.
+		case gb_trees:lookup (Dep, IncludedBy) of
+		  none ->
+		    ok;
+		  { value, OtherApp } ->
+		    throw ({ dependency_included, App, Dep, OtherApp })
+		end,
+		{ value, DepSpec } = gb_trees:lookup (Dep, AppToSpec),
+		start_app (DepSpec,
+			   AppToSpec,
+			   IncludedBy,
+			   NewStarting,
+			   CurActions,
+			   CurStarted)
+	      end,
+	      { Actions, Started },
+	      Deps),
 
 	  % Ensure the application is loaded.  (We have to do this
 	  % explicitly in case Spec came from an override .app file.)

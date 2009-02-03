@@ -2,7 +2,7 @@
 # environment variable FW_PACKAGE_DEFAULT_MAINTAINER if non-empty
 
 FW_PACKAGE_NAME="erlrc"
-FW_PACKAGE_VERSION="0.0.15"
+FW_PACKAGE_VERSION="0.0.16"
 FW_PACKAGE_MAINTAINER="Paul Mineiro <paul-fw@mineiro.com>"
 FW_PACKAGE_SHORT_DESCRIPTION="Extensible application management."
 FW_PACKAGE_DESCRIPTION=`cat README`

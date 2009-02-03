@@ -1,3 +1,7 @@
+=Version 0.0.16=
+  * bug fix: was not starting dependencies of any included applications
+    before starting the containing application
+
 =Version 0.0.15=
   * erlrc_boot:boot ensures that the erlrc application is started,
     which ensures that the release_handler_1 bugfix is installed

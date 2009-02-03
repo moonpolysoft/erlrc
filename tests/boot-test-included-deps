@@ -1,0 +1,4 @@
+start combonodefinder-0.0.3: !ec2nodefinder, !nodefinder
+start nodefinder-0.2.0: crypto
+start ec2nodefinder-0.0.8: 
+start crypto-1.5.1.1: 
