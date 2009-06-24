@@ -14,4 +14,4 @@ if test -z "$fwb"
     exit 1
   fi
 
-"$fwb" --fw_version "0.1.27" --template erlang --name erlrc --revision svn --svn_project_path https://erlrc.googlecode.com/svn/trunk/ "$@"
+"$fwb" --fw_version "0.1.27" --template erlang --name erlrc "$@"
