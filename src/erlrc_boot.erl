@@ -138,7 +138,7 @@ write_boot_script (Name, ReleaseName, ReleaseVersion, ExtraApps) ->
   { Preamble, Postamble } = lists:split (length (List) - 2, List),
   NewList = Preamble ++ [ { apply, { erlrc_boot, boot, [] } } | Postamble ],
   NewScript = { script, Something, NewList },
-  { ok, Fd } = file:open (ScriptFile, write),
+  { ok, Fd } = file:open (ScriptFile, [write]),
   ok = io:format (Fd, "%% script generated at ~w ~w\n~p.\n",
 		  [date (), time (), NewScript]),
   ok = file:close (Fd),
